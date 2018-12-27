@@ -4,6 +4,9 @@
    Licensed under the MIT License.
 */
 
+#include <avr/sleep.h>
+#include <avr/interrupt.h>
+
 #include "pitches.h"
 
 /* Constants - define pin numbers for leds, buttons and speaker, and also the game tones */
@@ -17,7 +20,7 @@ int gameTones[] = { NOTE_G3, NOTE_C4, NOTE_E4, NOTE_G5};
 /* Global variales - store the game state */
 byte gameSequence[MAX_GAME_LENGTH] = {0};
 byte gameIndex = 0;
-
+ 
 /**
    Set up the GPIO pins
 */
@@ -25,10 +28,30 @@ void setup() {
   // The following line primes the random number generator. It assumes pin A0 is floating (disconnected)
   randomSeed(analogRead(1));
 
+  // Disable ADC - saves about 324.5uA in sleep mode!
+  ADCSRA = 0;
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
   for (int i = 0; i < 4; i++) {
     pinMode(buttonPins[i], INPUT_PULLUP);
   }
   pinMode(SPEAKER_PIN, OUTPUT);
+}
+
+ISR(PCINT0_vect) {
+  GIMSK &= ~0b00100000;  // Turn off pin change interrupts
+  sleep_disable();
+}
+
+void sleep() {
+  sleep_enable();
+  noInterrupts();
+  GIMSK |= 0b00100000;  // Turn on pin change interrupts
+  for (byte i = 0; i < 4; i++) {
+    PCMSK |= 1 << buttonPins[i];
+  }
+  interrupts();
+  sleep_cpu();
 }
 
 /**
@@ -65,7 +88,7 @@ byte readButton() {
         return i;
       }
     }
-    delay(1);
+    sleep();
   }
 }
 
