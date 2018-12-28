@@ -20,7 +20,7 @@ int gameTones[] = { NOTE_G3, NOTE_C4, NOTE_E4, NOTE_G5};
 /* Global variales - store the game state */
 byte gameSequence[MAX_GAME_LENGTH] = {0};
 byte gameIndex = 0;
- 
+
 /**
    Set up the GPIO pins
 */
@@ -54,16 +54,29 @@ void sleep() {
   sleep_cpu();
 }
 
+
+// The sound-producing function
+void beep (unsigned char speakerPin, int frequencyInHertz, long timeInMilliseconds)
+{ // http://web.media.mit.edu/~leah/LilyPad/07_sound_code.html
+  int  x;
+  long delayAmount = (long)(1000000 / frequencyInHertz);
+  long loopTime = (long)((timeInMilliseconds * 1000) / (delayAmount * 2));
+  for (x = 0; x < loopTime; x++) {
+    digitalWrite(speakerPin, HIGH);
+    delayMicroseconds(delayAmount);
+    digitalWrite(speakerPin, LOW);
+    delayMicroseconds(delayAmount);
+  }
+}
+
 /**
    Lights the given led and plays the suitable tone
 */
 void lightLedAndPlaySound(byte ledIndex) {
   pinMode(buttonPins[ledIndex], OUTPUT);
   digitalWrite(buttonPins[ledIndex], LOW);
-  tone(SPEAKER_PIN, gameTones[ledIndex]);
-  delay(300);
+  beep(SPEAKER_PIN, gameTones[ledIndex], 300);
   pinMode(buttonPins[ledIndex], INPUT_PULLUP);
-  noTone(SPEAKER_PIN);
 }
 
 /**
@@ -96,14 +109,11 @@ byte readButton() {
    Plays the tone associated with a specific button + debouncing mechanism
 */
 void playButtonTone(byte buttonIndex) {
-  tone(SPEAKER_PIN, gameTones[buttonIndex]);
+  beep(SPEAKER_PIN, gameTones[buttonIndex], 150);
 
-  // Simple debounce mechanism, wait until button is released.
-  delay(50);
+  // Wait until button is released.
   while (digitalRead(buttonPins[buttonIndex]) == LOW);
   delay(50);
-
-  noTone(SPEAKER_PIN);
 }
 
 /**
@@ -113,17 +123,12 @@ void gameOver() {
   gameIndex = 0;
   delay(200);
   // Play a Wah-Wah-Wah-Wah sound
-  tone(SPEAKER_PIN, NOTE_DS5);
-  delay(300);
-  tone(SPEAKER_PIN, NOTE_D5);
-  delay(300);
-  tone(SPEAKER_PIN, NOTE_CS5);
-  delay(300);
+  beep(SPEAKER_PIN, NOTE_DS5, 300);
+  beep(SPEAKER_PIN, NOTE_D5, 300);
+  beep(SPEAKER_PIN, NOTE_CS5, 300);
   for (int i = 0; i < 200; i++) {
-    tone(SPEAKER_PIN, NOTE_C5 + (i % 20 - 10));
-    delay(5);
+    beep(SPEAKER_PIN, NOTE_C5 + (i % 20 - 10), 5);
   }
-  noTone(SPEAKER_PIN);
   delay(500);
 }
 
@@ -149,18 +154,12 @@ void checkUserSequence() {
    Plays an hooray sound whenever the user finishes a level
 */
 void levelUp() {
-  tone(SPEAKER_PIN, NOTE_E4);
-  delay(150);
-  tone(SPEAKER_PIN, NOTE_G4);
-  delay(150);
-  tone(SPEAKER_PIN, NOTE_E5);
-  delay(150);
-  tone(SPEAKER_PIN, NOTE_C5);
-  delay(150);
-  tone(SPEAKER_PIN, NOTE_D5);
-  delay(150);
-  tone(SPEAKER_PIN, NOTE_G5);
-  delay(150);
+  beep(SPEAKER_PIN, NOTE_E4, 150);
+  beep(SPEAKER_PIN, NOTE_G4, 150);
+  beep(SPEAKER_PIN, NOTE_E5, 150);
+  beep(SPEAKER_PIN, NOTE_C5, 150);
+  beep(SPEAKER_PIN, NOTE_D5, 150);
+  beep(SPEAKER_PIN, NOTE_G5, 150);
   noTone(SPEAKER_PIN);
 }
 
