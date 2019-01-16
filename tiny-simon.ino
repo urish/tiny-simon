@@ -35,7 +35,7 @@ void setup() {
   for (int i = 0; i < 4; i++) {
     pinMode(buttonPins[i], INPUT_PULLUP);
   }
-  pinMode(SPEAKER_PIN, OUTPUT);
+  pinMode(SPEAKER_PIN, INPUT);
 }
 
 ISR(PCINT0_vect) {
@@ -61,12 +61,14 @@ void beep (unsigned char speakerPin, int frequencyInHertz, long timeInMillisecon
   int  x;
   long delayAmount = (long)(1000000 / frequencyInHertz);
   long loopTime = (long)((timeInMilliseconds * 1000) / (delayAmount * 2));
+  pinMode(speakerPin, OUTPUT);
   for (x = 0; x < loopTime; x++) {
     digitalWrite(speakerPin, HIGH);
     delayMicroseconds(delayAmount);
     digitalWrite(speakerPin, LOW);
     delayMicroseconds(delayAmount);
   }
+  pinMode(speakerPin, INPUT);
 }
 
 /**
@@ -160,7 +162,6 @@ void levelUp() {
   beep(SPEAKER_PIN, NOTE_C5, 150);
   beep(SPEAKER_PIN, NOTE_D5, 150);
   beep(SPEAKER_PIN, NOTE_G5, 150);
-  noTone(SPEAKER_PIN);
 }
 
 /**
